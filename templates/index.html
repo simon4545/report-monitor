@@ -55,9 +55,11 @@
             if (!acc[record.ip] || new Date(record.created_at) > new Date(acc[record.ip].created_at)) {
               record['created_at'] = formatDate(record['created_at'])
               let nvidia_info = record['nvidia_info'].split(",")
-              record['nvidia_info'] = nvidia_info.filter(function (item, idx) {
-                return idx!=0 && idx % 4 == 3
-              })
+              if (nvidia_info.length > 0) {
+                record['nvidia_info'] = nvidia_info.filter(function (item, idx) {
+                  return idx != 0 && (idx % 4 == 3 || idx % 4 == 1)
+                })
+              }
               acc[record.ip] = record;
             }
             return acc;
