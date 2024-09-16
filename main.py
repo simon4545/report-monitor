@@ -12,14 +12,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'da
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
+tz = pytz.timezone('Asia/Shanghai')
 # 定义模型
 class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ip = db.Column(db.String(300), nullable=False)
+    ip = db.Column(db.Text, nullable=False)
     nvidia_info = db.Column(db.Text, nullable=False)
-    tz = pytz.timezone('Asia/Shanghai')
-    created_at = db.Column(db.Text, default=tz)
+    created_at = db.Column(db.Text, nullable=False)
 
     def __repr__(self):
         return f'<Record {self.id}>'
@@ -36,7 +35,8 @@ def report():
             nvidia_info = data.get('nvidia_info')
             if ip is None or nvidia_info is None:
                 return jsonify({"error": "Missing 'ip' or 'nvidia_info' in JSON data"}), 400
-            new_record = Record(ip=ip, nvidia_info=nvidia_info)
+            
+            new_record = Record(ip=ip, nvidia_info=nvidia_info,created_at=tz.localize(datetime.now()))
             db.session.add(new_record)
             db.session.commit()
             return jsonify({"message": "Data received and stored."}), 200
