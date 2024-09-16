@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IP Info Table</title>
+  <!-- 引入 axios 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <table border="1">
+      <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Last Created At</th>
+          <th>Nvidia Info</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(record, ip, nvidia_info) in latestRecordPerIP" :key="ip">
+          <td>[[ record.ip ]]</td>
+          <td>[[ record.created_at ]]</td>
+          <td>[[ record.nvidia_info ]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+    new Vue({
+      delimiters: ['[[', ']]'],
+      el: '#app',
+      data: {
+        records: []  // 用来存储从 /show 获取的 JSON 数据
+      },
+      computed: {
+        latestRecordPerIP() {
+          return this.records.reduce((acc, record) => {
+            if (!acc[record.ip] || new Date(record.created_at) > new Date(acc[record.ip].created_at)) {
+              record['created_at'] = formatDate(record['created_at'])
+              let nvidia_info = record['nvidia_info'].split(",")
+              record['nvidia_info'] = nvidia_info.filter(function (item, idx) {
+                return idx!=0 && idx % 4 == 3
+              })
+              acc[record.ip] = record;
+            }
+            return acc;
+          }, {});
+        }
+      },
+      mounted() {
+        // 页面加载后从 /show 拉取数据
+        axios.get('/show')
+          .then(response => {
+            this.records = response.data; // 将返回的 JSON 数据存储到 records 中
+          })
+          .catch(error => {
+            console.error("There was an error fetching the data!", error);
+          });
+      }
+    });
+  </script>
+</body>
+
+</html>
