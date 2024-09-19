@@ -43,6 +43,9 @@
 
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
+    setTimeout(function(){
+      window.location.reload()
+    },1000*20)
     new Vue({
       delimiters: ['[[', ']]'],
       el: '#app',
