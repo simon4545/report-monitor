@@ -43,9 +43,9 @@
 
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
-    setTimeout(function(){
+    setTimeout(function () {
       window.location.reload()
-    },1000*20)
+    }, 1000 * 20)
     new Vue({
       delimiters: ['[[', ']]'],
       el: '#app',
@@ -54,6 +54,11 @@
       },
       computed: {
         latestRecordPerIP() {
+          this.records.sort(function (a, b) {
+            let bip=b.ip.split('.')[3]
+            let aip=a.ip.split('.')[3]
+            return aip - bip
+          });
           return this.records.reduce((acc, record) => {
             if (!acc[record.ip] || new Date(record.created_at) > new Date(acc[record.ip].created_at)) {
               record['created_at'] = formatDate(record['created_at'])
