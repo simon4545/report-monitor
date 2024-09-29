@@ -12,6 +12,7 @@
 
 <body>
   <div id="app">
+    <h3>合计[[ count ]]台，最高温度:[[ temp ]]</h3>
     <table border="1">
       <thead>
         <tr>
@@ -50,28 +51,40 @@
       delimiters: ['[[', ']]'],
       el: '#app',
       data: {
+        count: 0,
+        temp: 0,
         records: []  // 用来存储从 /show 获取的 JSON 数据
       },
       computed: {
         latestRecordPerIP() {
           this.records.sort(function (a, b) {
-            let bip=b.ip.split('.')[3]
-            let aip=a.ip.split('.')[3]
+            let bip = b.ip.split('.')[3]
+            let aip = a.ip.split('.')[3]
             return aip - bip
           });
-          return this.records.reduce((acc, record) => {
+          let that = this;
+          let result = this.records.reduce((acc, record) => {
             if (!acc[record.ip] || new Date(record.created_at) > new Date(acc[record.ip].created_at)) {
               record['created_at'] = formatDate(record['created_at'])
               let nvidia_info = record['nvidia_info'].split(",")
               if (nvidia_info.length > 0) {
                 record['nvidia_info'] = nvidia_info.filter(function (item, idx) {
-                  return idx != 0 && (idx % 4 == 3 || idx % 4 == 1)
+                  let result = idx != 0 && (idx % 4 == 3 || idx % 4 == 1)
+                  if (idx != 0 && (idx % 4 == 3)) {
+                    let _temp=parseFloat(item.trim())
+                    if (_temp > that.temp) {
+                      that.temp = _temp
+                    }
+                  }
+                  return result;
                 })
               }
+              that.count++;
               acc[record.ip] = record;
             }
             return acc;
           }, {});
+          return result;
         }
       },
       mounted() {
