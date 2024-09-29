@@ -18,6 +18,7 @@ class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ip = db.Column(db.Text, nullable=False)
     nvidia_info = db.Column(db.Text, nullable=False)
+    cpu_temp = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.Text, nullable=False)
 
     def __repr__(self):
@@ -32,11 +33,12 @@ def report():
         try:
             data = request.json
             ip = data.get('ip')
+            cputemp = data.get('cpu_temp')
             nvidia_info = data.get('nvidia_info')
             if ip is None or nvidia_info is None:
                 return jsonify({"error": "Missing 'ip' or 'nvidia_info' in JSON data"}), 400
             
-            new_record = Record(ip=ip, nvidia_info=nvidia_info,created_at=tz.localize(datetime.now()))
+            new_record = Record(ip=ip, nvidia_info=nvidia_info,cpu_temp=cputemp,created_at=tz.localize(datetime.now()))
             db.session.add(new_record)
             db.session.commit()
             return jsonify({"message": "Data received and stored."}), 200
@@ -48,7 +50,7 @@ def report():
 @app.route('/show', methods=['GET'])
 def show():
     records = Record.query.order_by(Record.id.desc()).limit(10).all()
-    return jsonify([{"id": record.id, "ip": record.ip, "nvidia_info": record.nvidia_info, "created_at": record.created_at} for record in records]), 200
+    return jsonify([{"id": record.id, "ip": record.ip, "nvidia_info": record.nvidia_info, "cpu_temp": record.cpu_temp, "created_at": record.created_at} for record in records]), 200
 
 @app.route('/')
 def index():

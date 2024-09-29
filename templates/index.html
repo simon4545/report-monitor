@@ -16,14 +16,16 @@
     <table border="1">
       <thead>
         <tr>
-          <th>IP Address</th>
-          <th>Last Created At</th>
-          <th>Nvidia Info</th>
+          <th>IP</th>
+          <th>CPU负载</th>
+          <th>上次更新</th>
+          <th>显卡</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(record, ip, nvidia_info) in latestRecordPerIP" :key="ip">
           <td>[[ record.ip ]]</td>
+          <td>[[ record.cpu_temp ]]</td>
           <td>[[ record.created_at ]]</td>
           <td>[[ record.nvidia_info ]]</td>
         </tr>
@@ -71,15 +73,17 @@
                 record['nvidia_info'] = nvidia_info.filter(function (item, idx) {
                   let result = idx != 0 && (idx % 4 == 3 || idx % 4 == 1)
                   if (idx != 0 && (idx % 4 == 3)) {
-                    let _temp=parseFloat(item.trim())
+                    let _temp = parseFloat(item.trim())
                     if (_temp > that.temp) {
                       that.temp = _temp
                     }
                   }
+
                   return result;
                 })
               }
               that.count++;
+              record['nvidia_info'] = record['nvidia_info'].map((item, idx) => item.trim())
               acc[record.ip] = record;
             }
             return acc;
